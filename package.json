@@ -1,6 +1,6 @@
 {
   "name": "axios-burp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A library that convert axios object to burp-like repeater",
   "main": "dist/index.js",
   "private": false,
