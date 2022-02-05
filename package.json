@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "test": "ts-mocha ./test/**/*_test.ts",
-    "build": "rm -rf dist && tsc && rm -rf node_modules",
+    "build": "npm i && rm -rf dist && tsc && rm -rf node_modules && npm i --production",
     "own:publish": "npm run build && npm publish"
   },
   "author": "drstrnegth",
