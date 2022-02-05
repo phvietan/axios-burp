@@ -16,8 +16,9 @@ function convertFirstLineBurp(line: string) {
   return { method, path };
 }
 
-export function burpToRequest(burp: string): AxiosRequestConfig {
-  const arr = burp.split('\r\n');
+function tryParseWithDelimiter(burp: string, delimiter: string, force = false) {
+  const arr = burp.split(delimiter);
+  if (arr.length === 1 && !force) throw new Error('Something is wrong with delimiter');
 
   let headers: string[] = [];
   let body = undefined;
@@ -25,7 +26,7 @@ export function burpToRequest(burp: string): AxiosRequestConfig {
   const splittedHeaderBody = arr.indexOf('');
   if (splittedHeaderBody !== -1) {
     headers = arr.slice(1, splittedHeaderBody);
-    body = arr.slice(splittedHeaderBody + 1).join('\r\n');
+    body = arr.slice(splittedHeaderBody + 1).join(delimiter);
   } else {
     headers = arr.slice(1);
   }
@@ -50,4 +51,14 @@ export function burpToRequest(burp: string): AxiosRequestConfig {
   });
 
   return req;
+}
+
+export function burpToRequest(burp: string): AxiosRequestConfig {
+  try {
+    const parsedObj = tryParseWithDelimiter(burp, '\r\n');
+    return parsedObj;
+  } catch (err) {
+    const parsedObj = tryParseWithDelimiter(burp, '\n', true);
+    return parsedObj;
+  }
 }

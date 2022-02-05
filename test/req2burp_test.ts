@@ -44,5 +44,15 @@ describe('Test req2burp', () => {
     }, true);
     assert(msg.split('\r\n').length === 6);
   });
+  it('should correctly convert axios request to burp when have params', () => {
+    const msg = requestToBurp({
+      url: '/ayyo/../dcm',
+      params: { wtf: 'cc', ayto: 'wtf' },
+      baseURL: 'https://google.com',
+      data: 'yooo',
+    }, true);
+    assert(msg.split('\r\n').length === 6);
+    assert(msg.split('\r\n')[0] === 'GET /ayyo/../dcm?wtf=cc&ayto=wtf HTTP/1.1');
+  });
 });
 

@@ -2,10 +2,12 @@ import { AxiosRequestConfig } from "./type";
 import url from 'url';
 
 function tryParsePath(req: Partial<AxiosRequestConfig>) {
-  req.url = req.url ?? '/';
   try {
-    const parsedUrl = url.parse(req.url);
-    return parsedUrl.pathname || '/';
+    const params = new URLSearchParams(req.params);
+    let u = req.url || '/';
+    if (params) u += `?${params}`;
+    const parsedUrl = url.parse(u);
+    return parsedUrl.path;
   } catch (err) { return '/'; }
 }
 
@@ -16,11 +18,12 @@ function tryGetHostname(req: Partial<AxiosRequestConfig>): string | undefined {
 
 export function requestToBurp(req: Partial<AxiosRequestConfig>, autoAddHeader: boolean = false): string {
   req.headers = req.headers || {};
+  req.url = req.url ?? '/';
+  req.params = req.params ?? {};
+  req.method = req.method ?? 'GET';
 
-  const method = req.method ?? 'GET';
   const url = tryParsePath(req);
-
-  let msg = `${method} ${url} HTTP/1.1\r\n`;
+  let msg = `${req.method} ${url} HTTP/1.1\r\n`;
 
   const body = req.data ?? '';
 
