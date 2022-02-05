@@ -1,0 +1,34 @@
+{
+  "name": "axios-burp",
+  "version": "1.0.0",
+  "description": "A library that convert axios object to burp-like repeater",
+  "main": "dist/index.js",
+  "private": false,
+  "keywords": [
+    "lib",
+    "burp",
+    "axios",
+    "http",
+    "log",
+    "logger"
+  ],
+  "scripts": {
+    "test": "ts-mocha ./test/**/*_test.ts",
+    "build": "rm -rf dist && tsc && rm -rf node_modules",
+    "generate-docs": "typedoc src"
+  },
+  "author": "drstrnegth",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^17.0.13",
+    "axios": "^0.25.0",
+    "chai": "^4.3.6",
+    "ts-mocha": "^9.0.2",
+    "typedoc": "^0.22.11",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@types/axios": "^0.14.0"
+  }
+}
