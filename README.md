@@ -37,8 +37,6 @@ async function example() {
 
 # Installation
 
-Simple installation through npm:
-
 Install with npm:
 ```sh
 npm i axios-burp --save
