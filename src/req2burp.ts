@@ -1,21 +1,41 @@
-import { AxiosRequestConfig } from "./type";
+import { AxiosRequestConfig } from './type';
 import url from 'url';
 
-function tryParsePath(req: Partial<AxiosRequestConfig>) {
+/**
+ * Try to parse url path in HTTP from Axios Request
+ * @param {AxiosRequestConfig} req - Input axios request
+ * @return {string} - The url path in HTTP
+ */
+function tryParsePath(req: Partial<AxiosRequestConfig>): string {
   try {
     const params = new URLSearchParams(req.params);
     let u = req.url || '/';
     if (params) u += `?${params}`;
     const parsedUrl = url.parse(u);
-    return parsedUrl.path;
-  } catch (err) { return '/'; }
+    return parsedUrl.path || '/';
+  } catch (err) {
+    return '/';
+  }
 }
 
+/**
+ * Try to get host header in HTTP from Axios Request
+ * @param {AxiosRequestConfig} req - Input axios request
+ * @return {string} - The host header in HTTP
+ */
 function tryGetHostname(req: Partial<AxiosRequestConfig>): string | undefined {
-  if (req.baseURL) return url.parse(req.baseURL).hostname || undefined;
+  if (req.baseURL) return url.parse(req.baseURL).host || undefined;
   return url.parse(req.url || '/').host || undefined;
 }
 
+/**
+ * Parse from Axios Request to Burp-like HTTP message
+ * [Optional] if autoAddHeader is set then this function will try to include missing HTTP headers
+ * For example: Content-Length HTTP header
+ * @param {AxiosRequestConfig} req - Input axios request
+ * @param {boolean} autoAddHeader - Turn on this option to auto add missing HTTP headers
+ * @return {string} - The result burp HTTP message
+ */
 export function requestToBurp(req: Partial<AxiosRequestConfig>, autoAddHeader: boolean = false): string {
   req.headers = req.headers || {};
   req.url = req.url ?? '/';
@@ -35,9 +55,11 @@ export function requestToBurp(req: Partial<AxiosRequestConfig>, autoAddHeader: b
   }
 
   if (req.headers) {
-    for (var key in req.headers) {
-      const value = req.headers[key];
-      msg += `${key}: ${value}\r\n`;
+    for (const key in req.headers) {
+      if (req.headers.hasOwnProperty(key)) {
+        const value = req.headers[key];
+        msg += `${key}: ${value}\r\n`;
+      }
     }
   }
   msg += '\r\n';
