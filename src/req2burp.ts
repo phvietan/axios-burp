@@ -2,6 +2,15 @@ import { AxiosRequestConfig } from './type';
 import url from 'url';
 
 /**
+ * Check if object is empty or not (is it equal {}?)
+ * @param {any} obj - Object to be check empty
+ * @return {boolean} - True/False indicate input object is empty or not
+ */
+function isObjectEmpty(obj: any): boolean {
+  return obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
+}
+
+/**
  * Try to parse url path in HTTP from Axios Request
  * @param {AxiosRequestConfig} req - Input axios request
  * @return {string} - The url path in HTTP
@@ -10,7 +19,7 @@ function tryParsePath(req: Partial<AxiosRequestConfig>): string {
   try {
     const params = new URLSearchParams(req.params);
     let u = req.url || '/';
-    if (params) u += `?${params}`;
+    if (!isObjectEmpty(req.params)) u += `?${params}`;
     const parsedUrl = url.parse(u);
     return parsedUrl.path || '/';
   } catch (err) {
