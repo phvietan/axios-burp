@@ -1,4 +1,13 @@
+import url from 'url';
 import { AxiosRequestConfig, Method } from "./type";
+
+function paramsToObject(entries: URLSearchParams) {
+  const result: Record<string, string> = {};
+  for (const [key, value] of entries) { // each 'entry' is a [key, value] tupple
+    result[key] = value;
+  }
+  return result;
+}
 
 function convertFirstLineBurp(line: string) {
   const arr = line.split(' ');
@@ -11,9 +20,14 @@ function convertFirstLineBurp(line: string) {
       break;
     }
 
-  const path = line.slice(method.length + 1, lastWhitespace);
+  const parsedPath = url.parse(line.slice(method.length + 1, lastWhitespace));
+  const parsedParams = new URLSearchParams(parsedPath.query || '');
 
-  return { method, path };
+  return {
+    method,
+    path: parsedPath.pathname || '/',
+    params: paramsToObject(parsedParams),
+  };
 }
 
 function tryParseWithDelimiter(burp: string, delimiter: string, force = false) {
@@ -31,12 +45,13 @@ function tryParseWithDelimiter(burp: string, delimiter: string, force = false) {
     headers = arr.slice(1);
   }
 
-  const { method, path } = convertFirstLineBurp(arr[0]);
+  const { method, path, params } = convertFirstLineBurp(arr[0]);
 
   const req: AxiosRequestConfig = {};
   req.method = method as Method;
   req.url = path;
   req.data = body;
+  req.params = params;
   req.headers = {};
 
   headers.forEach(h => {
