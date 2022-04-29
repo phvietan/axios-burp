@@ -1,4 +1,5 @@
 import chai from 'chai';
+import { convertFirstLineBurp } from '../src/burp2req';
 import { requestToBurp } from '../src/req2burp';
 
 const assert = chai.assert;
@@ -50,9 +51,16 @@ describe('Test req2burp', () => {
       params: { wtf: 'cc', ayto: 'wtf' },
       baseURL: 'https://google.com',
       data: 'yooo',
+      httpVersion: 'HTTP/2',
     }, true);
     assert(msg.split('\r\n').length === 6);
-    assert(msg.split('\r\n')[0] === 'GET /ayyo/../dcm?wtf=cc&ayto=wtf HTTP/1.1');
+    const firstLine = msg.split('\r\n')[0];
+    assert(firstLine === 'GET /ayyo/../dcm?wtf=cc&ayto=wtf HTTP/2');
+    const obj = convertFirstLineBurp(firstLine);
+    assert(obj.httpVersion === 'HTTP/2');
+    assert(obj.method === 'GET');
+    assert(obj.path === '/ayyo/../dcm');
+    assert(Object.keys(obj.params).length === 2);
   });
 });
 

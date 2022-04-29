@@ -44,6 +44,7 @@ export type responseEncoding =
   | 'utf16le' | 'UTF16LE';
 
 export interface AxiosRequestConfig<D = any> {
+  httpVersion?: string;
   url?: string;
   baseURL?: string;
   method?: Method;

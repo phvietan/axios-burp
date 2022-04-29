@@ -32,7 +32,7 @@ function tryParsePath(req: Partial<AxiosRequestConfig>): string {
  * @param {AxiosRequestConfig} req - Input axios request
  * @return {string} - The host header in HTTP
  */
-function tryGetHostname(req: Partial<AxiosRequestConfig>): string | undefined {
+function tryGetHostname(req: AxiosRequestConfig): string | undefined {
   if (req.baseURL) return url.parse(req.baseURL).host || undefined;
   return url.parse(req.url || '/').host || undefined;
 }
@@ -41,18 +41,20 @@ function tryGetHostname(req: Partial<AxiosRequestConfig>): string | undefined {
  * Parse from Axios Request to Burp-like HTTP message
  * [Optional] if autoAddHeader is set then this function will try to include missing HTTP headers
  * For example: Content-Length HTTP header
+ *
  * @param {AxiosRequestConfig} req - Input axios request
  * @param {boolean} autoAddHeader - Turn on this option to auto add missing HTTP headers
  * @return {string} - The result burp HTTP message
  */
-export function requestToBurp(req: Partial<AxiosRequestConfig>, autoAddHeader: boolean = false): string {
+export function requestToBurp(req: AxiosRequestConfig, autoAddHeader: boolean = false): string {
   req.headers = req.headers || {};
   req.url = req.url ?? '/';
   req.params = req.params ?? {};
   req.method = req.method ?? 'GET';
+  req.httpVersion = req.httpVersion ?? 'HTTP/1.1';
 
   const url = tryParsePath(req);
-  let msg = `${req.method} ${url} HTTP/1.1\r\n`;
+  let msg = `${req.method} ${url} ${req.httpVersion}\r\n`;
 
   const body = req.data ?? '';
 
