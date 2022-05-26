@@ -62,5 +62,6 @@ describe('Test req2burp', () => {
     assert(obj.path === '/ayyo/../dcm');
     assert(Object.keys(obj.params).length === 2);
   });
+
 });
 

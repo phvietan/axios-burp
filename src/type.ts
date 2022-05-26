@@ -1,14 +1,3 @@
-export type AxiosRequestHeaders = Record<string, string | number | boolean>;
-
-export type AxiosResponseHeaders = Record<string, string> & {
-  "set-cookie"?: string[]
-};
-
-export interface AxiosBasicCredentials {
-  username: string;
-  password: string;
-}
-
 export type Method =
   | 'get' | 'GET'
   | 'delete' | 'DELETE'
@@ -43,12 +32,12 @@ export type responseEncoding =
   | 'utf8' | 'UTF8'
   | 'utf16le' | 'UTF16LE';
 
-export interface AxiosRequestConfig<D = any> {
+export interface AxiosRequestConfig {
   httpVersion?: string;
   url?: string;
   baseURL?: string;
   method?: Method;
-  headers?: AxiosRequestHeaders;
+  headers?: Record<string, string | number | boolean>;
   params?: any;
-  data?: D;
+  data?: string;
 }
