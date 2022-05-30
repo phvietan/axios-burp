@@ -1,4 +1,4 @@
-export type Method =
+export type HttpMethod =
   | 'get' | 'GET'
   | 'delete' | 'DELETE'
   | 'head' | 'HEAD'
@@ -10,12 +10,10 @@ export type Method =
   | 'link' | 'LINK'
   | 'unlink' | 'UNLINK';
 
-export interface AxiosRequestConfig {
+export interface AxiosRequest {
+  url: string;
   httpVersion?: string;
-  url?: string;
-  baseURL?: string;
-  method?: Method;
+  method?: HttpMethod;
   headers?: Record<string, string | number | boolean>;
-  params?: any;
-  data?: string;
+  body?: string;
 }

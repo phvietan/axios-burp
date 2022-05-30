@@ -11,57 +11,36 @@ describe('Test req2burp', () => {
       headers: {
         'Connection': 'close',
       },
-      data: 'yooo',
+      body: 'yooo',
     });
     assert(msg.split('\r\n').length === 4);
   });
   it('should correctly convert axios request to burp when url is full and autoaddheader', () => {
     const msg = requestToBurp({
       url: 'http://google.com/ayyo/../dcm',
-      data: 'yooo',
+      body: 'yooo',
     }, true);
-    assert(msg.split('\r\n').length === 6);
+    assert(msg.split('\r\n').length === 7);
   });
   it('should correctly convert axios request to burp when url is path and autoaddheader', () => {
     const msg = requestToBurp({
       url: '/ayyo/../dcm',
-      data: 'yooo',
+      body: 'yooo',
     }, true);
     assert(msg.split('\r\n').length === 5);
   });
   it('should correctly convert axios request to burp when have baseURL', () => {
     const msg = requestToBurp({
       url: '/ayyo/../dcm',
-      baseURL: 'https://google.com:3434',
-      data: 'yooo',
+      body: 'yooo',
     });
     assert(msg.split('\r\n').length === 3);
   });
   it('should correctly convert axios request to burp when have baseURL and autoaddheader', () => {
     const msg = requestToBurp({
       url: '/ayyo/../dcm',
-      baseURL: 'https://google.com',
-      data: 'yooo',
+      body: 'yooo',
     }, true);
-    assert(msg.split('\r\n').length === 6);
+    assert(msg.split('\r\n').length === 5);
   });
-  it('should correctly convert axios request to burp when have params', () => {
-    const msg = requestToBurp({
-      url: '/ayyo/../dcm',
-      params: { wtf: 'cc', ayto: 'wtf' },
-      baseURL: 'https://google.com',
-      data: 'yooo',
-      httpVersion: 'HTTP/2',
-    }, true);
-    assert(msg.split('\r\n').length === 6);
-    const firstLine = msg.split('\r\n')[0];
-    assert(firstLine === 'GET /ayyo/../dcm?wtf=cc&ayto=wtf HTTP/2');
-    const obj = convertFirstLineBurp(firstLine);
-    assert(obj.httpVersion === 'HTTP/2');
-    assert(obj.method === 'GET');
-    assert(obj.path === '/ayyo/../dcm');
-    assert(Object.keys(obj.params).length === 2);
-  });
-
 });
-

@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from './type';
+import { AxiosRequest } from './type';
 import url from 'url';
 
 /**
@@ -12,29 +12,36 @@ function isObjectEmpty(obj: any): boolean {
 
 /**
  * Try to parse url path in HTTP from Axios Request
- * @param {AxiosRequestConfig} req - Input axios request
+ * @param {AxiosRequest} req - Input axios request
  * @return {string} - The url path in HTTP
  */
-function tryParsePath(req: Partial<AxiosRequestConfig>): string {
-  try {
-    const params = new URLSearchParams(req.params);
-    let u = req.url || '/';
-    if (!isObjectEmpty(req.params)) u += `?${params}`;
-    const parsedUrl = url.parse(u);
-    return parsedUrl.path || '/';
-  } catch (err) {
-    return '/';
-  }
+export function tryParsePath(req: AxiosRequest): string {
+  const parsedUrl = url.parse(req.url || '/');
+  const hash = parsedUrl.hash || '';
+  return parsedUrl.path + hash;
 }
 
 /**
  * Try to get host header in HTTP from Axios Request
- * @param {AxiosRequestConfig} req - Input axios request
+ * @param {AxiosRequest} req - Input axios request
  * @return {string} - The host header in HTTP
  */
-function tryGetHostname(req: AxiosRequestConfig): string | undefined {
-  if (req.baseURL) return url.parse(req.baseURL).host || undefined;
+function tryGetHostname(req: AxiosRequest): string | undefined {
   return url.parse(req.url || '/').host || undefined;
+}
+
+/**
+ * Try to get origin header in HTTP from Axios Request
+ * @param {AxiosRequest} req - Input axios request
+ * @return {string} - The host header in HTTP
+ */
+function tryGetOrigin(req: AxiosRequest): string | undefined {
+  const parsed = url.parse(req.url);
+  const { protocol, host, port } = parsed;
+  if (!protocol || !host) return undefined;
+  let origin = protocol + '//' + host;
+  if (port) origin += ':' + port;
+  return origin;
 }
 
 /**
@@ -42,25 +49,25 @@ function tryGetHostname(req: AxiosRequestConfig): string | undefined {
  * [Optional] if autoAddHeader is set then this function will try to include missing HTTP headers
  * For example: Content-Length HTTP header
  *
- * @param {AxiosRequestConfig} req - Input axios request
+ * @param {AxiosRequest} req - Input axios request
  * @param {boolean} autoAddHeader - Turn on this option to auto add missing HTTP headers
  * @return {string} - The result burp HTTP message
  */
-export function requestToBurp(req: AxiosRequestConfig, autoAddHeader: boolean = false): string {
+export function requestToBurp(req: AxiosRequest, autoAddHeader: boolean = false): string {
   req.headers = req.headers || {};
-  req.url = req.url ?? '/';
-  req.params = req.params ?? {};
   req.method = req.method ?? 'GET';
   req.httpVersion = req.httpVersion ?? 'HTTP/1.1';
 
-  const url = tryParsePath(req);
-  let msg = `${req.method} ${url} ${req.httpVersion}\r\n`;
+  const path = tryParsePath(req);
+  let msg = `${req.method} ${path} ${req.httpVersion}\r\n`;
 
-  const body = req.data ?? '';
+  const body = req.body ?? '';
 
   if (autoAddHeader) {
     const hostHeader = tryGetHostname(req);
+    const originHeader = tryGetOrigin(req);
     if (hostHeader) req.headers['Host'] = req.headers['Host'] || hostHeader;
+    if (originHeader) req.headers['Origin'] = req.headers['Origin'] || originHeader;
     req.headers['Content-Length'] = req.headers['Content-Length'] || body.length;
     req.headers['Connection'] = req.headers['Connection'] || 'close';
   }

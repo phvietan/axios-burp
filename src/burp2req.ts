@@ -1,29 +1,16 @@
 import url from 'url';
-import { AxiosRequestConfig, Method } from './type';
-
-/**
- * Try to parse URLSearchParams to javascript object
- * @param {URLSearchParams} entries - Input URLSearchParams
- * @return {Record<string, string>} - The result javascript object
- */
-function paramsToObject(entries: URLSearchParams): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const [key, value] of entries) {
-    result[key] = value;
-  }
-  return result;
-}
+import { AxiosRequest, HttpMethod } from './type';
 
 /**
  * Parse first line of Burp HTTP message
  *
+ * @function
  * @param {string} firstLine - firstLine of Burp HTTP message
  * @return {{}} - The method, path, params, httpVersion of Burp HTTP message
  */
 export function convertFirstLineBurp(firstLine: string): {
   method: string,
   path: string,
-  params: Record<string, string>,
   httpVersion: string,
 } {
   const arr = firstLine.split(' ');
@@ -40,25 +27,24 @@ export function convertFirstLineBurp(firstLine: string): {
   if (lastWhitespace === firstLine.length + 1) throw new Error('First line wrong format: should at least have 1 space between path and http version');
 
   const parsedPath = url.parse(firstLine.slice(method.length + 1, lastWhitespace));
-  const parsedParams = new URLSearchParams(parsedPath.query || '');
-
+  const hash = parsedPath.hash || '';
   return {
     method,
-    path: parsedPath.pathname || '/',
-    params: paramsToObject(parsedParams),
     httpVersion,
+    path: (parsedPath.path || '/') + hash,
   };
 }
 
 /**
  * Try to parse burp HTTP message to Axios with input delimiter
  *
+ * @function
  * @param {string} burp - burp HTTP message
  * @param {string} delimiter - delimiter between lines of HTTP message, could be '\r\n' or '\n' only
  * @param {boolean} force - forcefully parse the message, if set to false it will return when it find something funny
- * @return {AxiosRequestConfig} - The result Axios
+ * @return {AxiosRequest} - The result Axios
  */
-function tryParseWithDelimiter(burp: string, delimiter: string, force = false): AxiosRequestConfig {
+function tryParseWithDelimiter(burp: string, delimiter: '\r\n' | '\n', force = false): AxiosRequest {
   const arr = burp.split(delimiter);
   if (arr.length === 1 && !force) throw new Error('Something is wrong with delimiter');
 
@@ -73,27 +59,35 @@ function tryParseWithDelimiter(burp: string, delimiter: string, force = false): 
     headers = arr.slice(1);
   }
 
-  const { method, path, params, httpVersion } = convertFirstLineBurp(arr[0]);
+  const { method, path, httpVersion } = convertFirstLineBurp(arr[0]);
 
-  const req: AxiosRequestConfig = {
-    method: method as Method,
-    url: path,
-    data: body,
-    params,
-    headers: {},
-    httpVersion,
-  };
-
+  let originHeader = undefined;
+  let requestHeaders = {};
   headers.forEach((h) => {
     const delimiter = h.indexOf(': ');
     if (delimiter === -1) return;
     const key = h.slice(0, delimiter);
     const value = h.slice(delimiter + 2);
-    req.headers = {
-      ...req.headers,
+    if (/^origin$/i.test(key)) originHeader = value;
+    requestHeaders = {
+      ...requestHeaders,
       [key]: value,
     };
   });
+
+  // Tried my best to get the full URL back, if origin header is specified
+  // I did not use host header, because it redacted http and https, which might make the parser go wrong.
+  // If you encounter the host header vague case, please handle in your own code outside this parser.
+  let finalUrl = path;
+  if (originHeader) finalUrl = originHeader + path;
+
+  const req: AxiosRequest = {
+    method: method as HttpMethod,
+    url: finalUrl,
+    body,
+    headers: requestHeaders,
+    httpVersion,
+  };
 
   return req;
 }
@@ -101,10 +95,11 @@ function tryParseWithDelimiter(burp: string, delimiter: string, force = false): 
 /**
  * Try to parse burp HTTP message to Axios
  *
+ * @function
  * @param {string} burp - burp HTTP message
- * @return {AxiosRequestConfig} - The result Axios
+ * @return {AxiosRequest} - The result Axios
  */
-export function burpToRequest(burp: string): AxiosRequestConfig {
+export function burpToRequest(burp: string): AxiosRequest {
   try {
     const parsedObj = tryParseWithDelimiter(burp, '\r\n');
     return parsedObj;

@@ -10,33 +10,40 @@ describe('Test burp2req', () => {
     );
     assert(obj.method === 'GET');
     assert(obj.url === '/ayyo/../dcm');
-    assert(obj.data === 'yooo');
+    assert(obj.body === 'yooo');
     assert(obj.headers['Connection'] === 'close');
   });
   it('should correctly convert burp to axios request 2', () => {
     const obj = burpToRequest(
-        `OPTIONS /ayyoHTTP/1.1  wtfmen? HTTP/1.1\r\nTest: close\r\nWTF: Test\r\n\r\nthis is my body`,
+        `OPTIONS /ayyoHTTP/1.1  wtfmen? HTTP/2\r\nTest: close\r\nWTF: Test\r\n\r\nthis is my body`,
     );
     assert(obj.method === 'OPTIONS');
-    assert(obj.url === '/ayyoHTTP/1.1%20%20wtfmen');
-    assert(obj.data === 'this is my body');
-    assert(obj.httpVersion === 'HTTP/1.1');
+    assert(obj.url === '/ayyoHTTP/1.1%20%20wtfmen?');
+    assert(obj.body === 'this is my body');
+    assert(obj.httpVersion === 'HTTP/2');
   });
   it('should correctly convert burp to axios request 3', () => {
     const obj = burpToRequest(
         `OPTIONS /ayyoHTTP/1.1  wtfmen? HTTP/1.1\r\nTest: close\r\nWTF: Test\r\nthis is my body`,
     );
     assert(obj.method === 'OPTIONS');
-    assert(obj.url === '/ayyoHTTP/1.1%20%20wtfmen');
-    assert(obj.data === undefined);
+    assert(obj.url === '/ayyoHTTP/1.1%20%20wtfmen?');
+    assert(obj.body === undefined);
   });
   it('should correctly convert burp to axios request with params', () => {
     const obj = burpToRequest(
-        `OPTIONS /ayyoHTTP/1.1  wtfmen?a=3&b=4 HTTP/1.1\r\nTest: close\r\nWTF: Test\r\nthis is my body`,
+        `OPTIONS /ayyoHTTP/1.1  wtfmen?a=3&b=4#123 HTTP/1.1\r\nTest: close\r\nWTF: Test\r\nthis is my body`,
     );
     assert(obj.method === 'OPTIONS');
-    assert(obj.data === undefined);
-    assert(obj.params.a === '3');
-    assert(obj.params.b === '4');
+    assert(obj.body === undefined);
+    assert(obj.url === '/ayyoHTTP/1.1%20%20wtfmen?a=3&b=4#123');
+  });
+  it('should correctly convert burp to axios request when have origin header', () => {
+    const obj = burpToRequest(
+        `OPTIONS /ayyoHTTP/1.1  wtfmen?a=3&b=4#123 HTTP/1.1\r\nOrigin: https://test.com\r\nTest: close\r\nWTF: Test\r\nthis is my body`,
+    );
+    assert(obj.method === 'OPTIONS');
+    assert(obj.body === undefined);
+    assert(obj.url === 'https://test.com/ayyoHTTP/1.1%20%20wtfmen?a=3&b=4#123');
   });
 });
