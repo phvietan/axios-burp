@@ -90,7 +90,7 @@ Returns:
 ```
 GET /ayyo/../dcm HTTP/1.1
 Host: google.com:3434
-Origin: https://google.com:3434:3434
+Origin: https://google.com:3434
 Content-Length: 4
 Connection: close
 

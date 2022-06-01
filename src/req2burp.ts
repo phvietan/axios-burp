@@ -28,10 +28,10 @@ function tryGetHostname(req: AxiosRequest): string | undefined {
  */
 function tryGetOrigin(req: AxiosRequest): string | undefined {
   const parsed = url.parse(req.url);
-  const { protocol, host, port } = parsed;
+  const { protocol, host } = parsed;
   if (!protocol || !host) return undefined;
+  console.log(parsed);
   let origin = protocol + '//' + host;
-  if (port) origin += ':' + port;
   return origin;
 }
 
