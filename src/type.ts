@@ -10,6 +10,11 @@ export type HttpMethod =
   | 'link' | 'LINK'
   | 'unlink' | 'UNLINK';
 
+/**
+ * AxiosRequest object that will get parsed from and into HTTP string
+ *
+ * @interface
+ */
 export interface AxiosRequest {
   url: string;
   httpVersion?: string;

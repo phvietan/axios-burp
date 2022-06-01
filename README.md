@@ -24,7 +24,6 @@ And if you have ever using [Axios](https://github.com/axios/axios), the followin
 async function example() {
   const opt: AxiosRequestConfig = {
     method: 'GET' as Method,
-    params,
     url: `${packet.origin}${packet.path}`,
     data: body,
   }
@@ -33,7 +32,9 @@ async function example() {
 }
 ```
 
-`axios-burp` is a simple library to convert burp HTTP message to axios request option and vice-versa, with typescript supported.
+`axios-burp` is a simple library to convert burp HTTP message to axios request option and vice-versa.
+
+However, to keep the logic simple, `axios-burp` re-define `AxiosRequest` type, please see <a href="#usage">Usage</a> below.
 
 # Installation
 
@@ -46,34 +47,60 @@ Install with yarn:
 yarn add axios-burp
 ```
 
-# Using axios-burp
+# Usage
 
-There are only 2 functions exported from `axios-burp`:
+First, let's define type of `AxiosRequest`.
 
-## requestToBurp example
+```typescript
+interface AxiosRequest {
+  url: string;
+  httpVersion?: string;
+  method?: HttpMethod;
+  headers?: Record<string, string | number | boolean>;
+  body?: string;
+}
+```
+
+| Property        | Description               | Type  | Required
+| :------------- |:-------------:             | :-----:| :-----:|
+| url            | The full url or only path  | string | ✔️ |
+| httpVersion    | The http version (Default "HTTP/1.1") | string |    |
+| method        |  The http method (Default "GET")     |  string |  |
+| headers        |  The http headers     |  Record<string, any> |  |
+| body        |  The http body of     |   string |     |
+
+
+### `requestToBurp(AxiosRequest [, autoAddHeader])`
+
+
+This function parses AxiosRequest to Burp-like HTTP msg string. Passing `autoAddHeader=true` results in adding `Origin` header and `Host` header. However, if `AxiosRequest` already contains `Origin` or `Host` headers, the result will priority `AxiosRequest` more.
 
 ```javascript
 const { requestToBurp } = require('axios-burp');
 const msg = requestToBurp({
-  url: '/ayyo/../dcm',
-  baseURL: 'https://google.com:3434',
-  params: { user: 'admin' },
-  data: 'yooo',
+  url: 'https://google.com:3434/ayyo/../dcm',
+  body: 'yooo',
 }, true);
 console.log(msg);
 ```
 
+
 This yields
 ```
-GET /ayyo/../dcm?user=admin HTTP/1.1
+GET /ayyo/../dcm HTTP/1.1
 Host: google.com:3434
+Origin: https://google.com:3434:3434
 Content-Length: 4
 Connection: close
 
 yooo
 ```
 
-## burpToRequest example
+### `burpToRequest(str)`
+
+This function parses HTTP msg string to `AxiosRequest`. If there is `Origin` header presented, the result `url` will be the full url; or else the result `url` only contains the path.
+
+This function tries to parse using `\r\n` first, if failed it will parse using `\n` .
 
 ```javascript
 const { burpToRequest } = require('axios-burp');
@@ -92,10 +119,10 @@ This yields
 ```
 {
   method: 'OPTIONS',
-  url: '/ayyoHTTP/1.1yo',
-  data: 'this is my body',
-  params: { a: '1' },
-  headers: { Test: 'close', WTF: 'Test' }
+  url: '/ayyoHTTP/1.1yo?a=1',
+  body: 'this is my body',
+  headers: { Test: 'close', WTF: 'Test' },
+  httpVersion: 'HTTP/1.1'
 }
 ```
 
