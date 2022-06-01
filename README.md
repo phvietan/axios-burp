@@ -66,14 +66,15 @@ interface AxiosRequest {
 | url            | The full url or only path  | string | ✔️ |
 | httpVersion    | The http version (Default "HTTP/1.1") | string |    |
 | method        |  The http method (Default "GET")     |  string |  |
-| headers        |  The http headers     |  Record<string, any> |  |
-| body        |  The http body of     |   string |     |
+| headers        |  The http headers (Default {})     |  Record<string, any> |  |
+| body        |  The http body (Default "")    |   string |     |
+
+<br>
+
+### `requestToBurp(req: AxiosRequest [, autoAddHeader: boolean])`
 
 
-### `requestToBurp(AxiosRequest [, autoAddHeader])`
-
-
-This function parses AxiosRequest to Burp-like HTTP msg string. Passing `autoAddHeader=true` results in adding `Origin` header and `Host` header. However, if `AxiosRequest` already contains `Origin` or `Host` headers, the result will priority `AxiosRequest` more.
+This function parses `AxiosRequest` to Burp-like HTTP msg string. Passing `autoAddHeader=true` results in adding `Origin` header and `Host` header. However, if `AxiosRequest` already contains `Origin` or `Host` headers, the result will priority `AxiosRequest` more.
 
 ```javascript
 const { requestToBurp } = require('axios-burp');
@@ -85,7 +86,7 @@ console.log(msg);
 ```
 
 
-This yields
+Returns:
 ```
 GET /ayyo/../dcm HTTP/1.1
 Host: google.com:3434
@@ -96,7 +97,7 @@ Connection: close
 yooo
 ```
 
-### `burpToRequest(str)`
+### `burpToRequest(burp: string)`
 
 This function parses HTTP msg string to `AxiosRequest`. If there is `Origin` header presented, the result `url` will be the full url; or else the result `url` only contains the path.
 
@@ -115,7 +116,7 @@ const obj = burpToRequest(burp);
 console.log(obj)
 ```
 
-This yields
+returns
 ```
 {
   method: 'OPTIONS',
@@ -128,5 +129,8 @@ This yields
 
 # License
 
-Licensed under [MIT](./LICENSE).
+The project is released under the [MIT license](./LICENSE).
 
+# Credits
+
+[phvietan](https://github.com/phvietan)
