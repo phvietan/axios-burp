@@ -30,9 +30,7 @@ function tryGetOrigin(req: AxiosRequest): string | undefined {
   const parsed = url.parse(req.url);
   const { protocol, host } = parsed;
   if (!protocol || !host) return undefined;
-  console.log(parsed);
-  let origin = protocol + '//' + host;
-  return origin;
+  return protocol + '//' + host;
 }
 
 /**
