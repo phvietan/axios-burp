@@ -56,7 +56,7 @@ interface AxiosRequest {
   url: string;
   httpVersion?: string;
   method?: HttpMethod;
-  headers?: Record<string, string | number | boolean>;
+  headers?: string[];
   body?: string;
 }
 ```
@@ -66,7 +66,7 @@ interface AxiosRequest {
 | url            | The full url or only path  | string | ✔️ |
 | httpVersion    | The http version (Default "HTTP/1.1") | string |    |
 | method        |  The http method (Default "GET")     |  string |  |
-| headers        |  The http headers (Default {})     |  Record<string, any> |  |
+| headers        |  The http headers (Default [])     |  string[] |  |
 | body        |  The http body (Default "")    |   string |     |
 
 <br>
@@ -122,7 +122,7 @@ returns
   method: 'OPTIONS',
   url: '/ayyoHTTP/1.1yo?a=1',
   body: 'this is my body',
-  headers: { Test: 'close', WTF: 'Test' },
+  headers: [ 'Test: close', 'WTF: Test' ],
   httpVersion: 'HTTP/1.1'
 }
 ```
