@@ -1,5 +1,4 @@
 import chai from 'chai';
-import { convertFirstLineBurp } from '../src/burp2req';
 import { requestToBurp } from '../src/req2burp';
 
 const assert = chai.assert;
@@ -8,9 +7,7 @@ describe('Test req2burp', () => {
   it('should correctly convert axios request to burp', () => {
     const msg = requestToBurp({
       url: '/ayyo',
-      headers: {
-        'Connection': 'close',
-      },
+      headers: ['Connection: close'],
       body: 'yooo',
     });
     assert(msg.split('\r\n').length === 4);
@@ -38,9 +35,11 @@ describe('Test req2burp', () => {
   });
   it('should correctly convert axios request to burp when have baseURL and autoaddheader', () => {
     const msg = requestToBurp({
-      url: '/ayyo/../dcm',
+      url: 'https://attacker.com/ayyo/../dcm?wtf=1#aaa=2',
+      headers: ['Authorization: Bearer test', 'Cookie: test=test'],
       body: 'yooo',
+      httpVersion: 'HTTP/2',
     }, true);
-    assert(msg.split('\r\n').length === 5);
+    assert(msg.split('\r\n').length === 9);
   });
 });

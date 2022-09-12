@@ -19,6 +19,6 @@ export interface AxiosRequest {
   url: string;
   httpVersion?: string;
   method?: HttpMethod;
-  headers?: Record<string, string | number | boolean>;
+  headers?: string[],
   body?: string;
 }

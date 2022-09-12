@@ -34,6 +34,22 @@ function tryGetOrigin(req: AxiosRequest): string | undefined {
 }
 
 /**
+ * Try to add header into header array
+ * @param {string[]} headers - Header array
+ * @param {string} newHeader - Newly adding header
+ * @return {string[]} - The header array after tried to add new header
+ */
+function tryAddHeader(headers: string[], newHeader: string): string[] {
+  const headerName = newHeader.split(':')[0];
+  if (headers.find((h) => h.toLowerCase().startsWith(headerName.toLowerCase()))) return headers;
+  const newHeaders = [
+    ...headers,
+    newHeader,
+  ];
+  return newHeaders;
+}
+
+/**
  * Parse from Axios Request to Burp-like HTTP message
  * [Optional] if autoAddHeader is set then this function will try to include missing HTTP headers
  * For example: Content-Length HTTP header
@@ -43,7 +59,7 @@ function tryGetOrigin(req: AxiosRequest): string | undefined {
  * @return {string} - The result burp HTTP message
  */
 export function requestToBurp(req: AxiosRequest, autoAddHeader: boolean = false): string {
-  req.headers = req.headers || {};
+  req.headers = req.headers || [];
   req.method = req.method ?? 'GET';
   req.httpVersion = req.httpVersion ?? 'HTTP/1.1';
 
@@ -55,21 +71,13 @@ export function requestToBurp(req: AxiosRequest, autoAddHeader: boolean = false)
   if (autoAddHeader) {
     const hostHeader = tryGetHostname(req);
     const originHeader = tryGetOrigin(req);
-    if (hostHeader) req.headers['Host'] = req.headers['Host'] || hostHeader;
-    if (originHeader) req.headers['Origin'] = req.headers['Origin'] || originHeader;
-    req.headers['Content-Length'] = req.headers['Content-Length'] || body.length;
-    req.headers['Connection'] = req.headers['Connection'] || 'close';
+    if (hostHeader) req.headers = tryAddHeader(req.headers, `Host: ${hostHeader}`);
+    if (originHeader) req.headers = tryAddHeader(req.headers, `Origin: ${originHeader}`);
+    req.headers = tryAddHeader(req.headers, `Content-Length: ${body.length}`);
+    req.headers = tryAddHeader(req.headers, `Connection: close`);
   }
 
-  if (req.headers) {
-    for (const key in req.headers) {
-      if (req.headers.hasOwnProperty(key)) {
-        const value = req.headers[key];
-        msg += `${key}: ${value}\r\n`;
-      }
-    }
-  }
-  msg += '\r\n';
+  msg += req.headers.reduce((prev, cur) => prev + cur + '\r\n', '') + '\r\n';
   if (body) msg += body;
   return msg;
 }

@@ -62,17 +62,12 @@ function tryParseWithDelimiter(burp: string, delimiter: '\r\n' | '\n', force = f
   const { method, path, httpVersion } = convertFirstLineBurp(arr[0]);
 
   let originHeader = undefined;
-  let requestHeaders = {};
   headers.forEach((h) => {
     const delimiter = h.indexOf(': ');
     if (delimiter === -1) return;
     const key = h.slice(0, delimiter);
     const value = h.slice(delimiter + 2);
     if (/^origin$/i.test(key)) originHeader = value;
-    requestHeaders = {
-      ...requestHeaders,
-      [key]: value,
-    };
   });
 
   // Tried my best to get the full URL back, if origin header is specified
@@ -85,7 +80,7 @@ function tryParseWithDelimiter(burp: string, delimiter: '\r\n' | '\n', force = f
     method: method as HttpMethod,
     url: finalUrl,
     body,
-    headers: requestHeaders,
+    headers,
     httpVersion,
   };
 
